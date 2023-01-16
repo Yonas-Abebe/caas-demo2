@@ -115,7 +115,6 @@ output application/java
 				<caas:additional-datum key="payload" value="#[payload]" />
 			</caas:additional-datas>
 		</caas:post-config>
-		<logger level="INFO" doc:name="Log payload" doc:id="4c66c540-020d-4afe-ab5d-ec19886a750a" message="#[payload]" />
 		<ee:transform doc:name="Response" doc:id="7fecf64a-a497-427b-a448-4bcc551655d2" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
