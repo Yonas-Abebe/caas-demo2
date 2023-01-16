@@ -20,16 +20,12 @@ http://www.mulesoft.org/schema/mule/rest http://www.mulesoft.org/schema/mule/res
 	</http:listener-config>
 	<caas:config name="Get_CAAS_Config" doc:name="CAAS Config"
 		doc:id="6a36e009-2ea3-4f4e-9046-27072c8e9609" protocol="HTTPS"
-		host="caas-app-mysql-5y0vto.5sc6y6-1.usa-e2.cloudhub.io"
-		basepath="/api/config?environment_name=dev1&amp;application_version=1.0.0&amp;application_name=app1" />
+		host="${caas.host}"
+		basepath="/api/config" applicationName="#[app.name]" environmentName="${caas.env}" applicationVersion="${caas.version}"/>
 	<caas:config name="Post_CAAS_Config" doc:name="CAAS Config"
 		doc:id="88cf2c2c-81ff-40b9-baa3-3e94ab32d2b4" protocol="HTTPS"
-		host="caas-app-mysql-5y0vto.5sc6y6-1.usa-e2.cloudhub.io"
-		basepath="/api/config?environment_name=dev2&amp;application_version=1.0.0&amp;application_name=app2" />
-	<global-property doc:name="Global Property"
-		doc:id="b9d8be2a-7296-4221-adf7-cf70ea52955d" name="caas.path"
-		value="/api/config?environment_name=dev2&amp;application_version=1.0.0&amp;application_name=app2" />
-	<global-property doc:name="Global Property" doc:id="59cc3866-2ae3-4d8b-86be-b159f62ab21d" name="caas.host" value="caas-app-mysql-5y0vto.5sc6y6-1.usa-e2.cloudhub.io" />
+		host="${caas.host}"
+		basepath="/api/config" applicationName="#[app.name]" environmentName="${caas.env}" applicationVersion="${caas.version}"/>
 	<flow name="caas-demo2Flow" doc:id="753cf4d3-22c6-4c3d-b0c6-a1cee28ba580" >
 		<http:listener doc:name="Listener" doc:id="6a4e6c07-04f6-4d7d-8524-b6051f355462" config-ref="HTTP_Listener_config" path="/get2"/>
 		<ee:transform doc:name="incoming request" doc:id="e0a22578-4a77-4945-8a18-47c182bf69da">
@@ -110,10 +106,11 @@ output application/java
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<caas:post-config doc:name="Create Configs" doc:id="bf4632cd-364f-4f80-a47a-efc9bbb86f13" config-ref="Post_CAAS_Config" appname="#[vars.application_name]" env="#[vars.environment_name]">
-			<caas:additional-datas >
-				<caas:additional-datum key="payload" value="#[payload]" />
-			</caas:additional-datas>
+		<caas:post-config doc:name="Create Configs" doc:id="bf4632cd-364f-4f80-a47a-efc9bbb86f13" config-ref="Post_CAAS_Config">
+			<caas:post-payloads >
+				<caas:post-payload key="postPayload" value="#[payload]" />
+			</caas:post-payloads>
+
 		</caas:post-config>
 		<ee:transform doc:name="Response" doc:id="7fecf64a-a497-427b-a448-4bcc551655d2" >
 			<ee:message >
