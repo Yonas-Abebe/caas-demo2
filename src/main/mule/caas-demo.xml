@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:rest="http://www.mulesoft.org/schema/mule/rest" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:caas="http://www.mulesoft.org/schema/mule/caas"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/caas http://www.mulesoft.org/schema/mule/caas/current/mule-caas.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/rest http://www.mulesoft.org/schema/mule/rest/current/mule-rest.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f3fd7781-4738-41c9-baf1-d01e0dca9fb4" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<caas:config name="Get_CAAS_Config" doc:name="CAAS Config" doc:id="6a36e009-2ea3-4f4e-9046-27072c8e9609" protocol="HTTPS" host="caas-app-mysql-5y0vto.5sc6y6-1.usa-e2.cloudhub.io" basepath="/api/config?environment_name=dev1&amp;application_version=1.0.0&amp;application_name=app1"/>
+	<caas:config name="Post_CAAS_Config" doc:name="CAAS Config" doc:id="88cf2c2c-81ff-40b9-baa3-3e94ab32d2b4" protocol="HTTPS" host="caas-app-mysql-5y0vto.5sc6y6-1.usa-e2.cloudhub.io" basepath="/api/config?environment_name=dev2&amp;application_version=1.0.0&amp;application_name=app2"/>
+	<global-property doc:name="Global Property" doc:id="b9d8be2a-7296-4221-adf7-cf70ea52955d" name="caas.path" value="/api/config?environment_name=dev2&amp;application_version=1.0.0&amp;application_name=app2" />
+	<global-property doc:name="Global Property" doc:id="59cc3866-2ae3-4d8b-86be-b159f62ab21d" name="caas.host" value="caas-app-mysql-5y0vto.5sc6y6-1.usa-e2.cloudhub.io" />
+	<flow name="caas-demo2Flow" doc:id="753cf4d3-22c6-4c3d-b0c6-a1cee28ba580" >
+		<http:listener doc:name="Listener" doc:id="6a4e6c07-04f6-4d7d-8524-b6051f355462" config-ref="HTTP_Listener_config" path="/get2"/>
+		<ee:transform doc:name="incoming request" doc:id="e0a22578-4a77-4945-8a18-47c182bf69da">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="host"><![CDATA[attributes.queryParams.host
+]]></ee:set-variable>
+				<ee:set-variable variableName="environment_name"><![CDATA[attributes.queryParams.environment_name]]></ee:set-variable>
+				<ee:set-variable variableName="application_name"><![CDATA[attributes.queryParams.application_name]]></ee:set-variable>
+				<ee:set-variable variableName="path"><![CDATA[attributes.queryParams.path
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<caas:get-config doc:name="Read Configs" doc:id="74e2ec3b-80ea-4d51-9ae3-37481fbfc84d" config-ref="Get_CAAS_Config"/>
+		<ee:transform doc:name="Response" doc:id="bd756976-fbe0-4153-887c-d05b28bca3a2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json 
+--- 
+read(payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="caas-demo2Flow1" doc:id="1584e9bc-04be-4f58-9392-01154722d0df" >
+		<http:listener doc:name="Listener" doc:id="e26699d8-b3b7-4e11-8d39-4652533741ae" config-ref="HTTP_Listener_config" path="/post2" outputMimeType="text/plain"/> 
+		
+		<!-- <ee:transform doc:name="Text to yaml" doc:id="1d50b573-22c7-4abd-8d0d-da10f0b066d1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+read(payload, "application/yaml")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="to json" doc:id="1483c2c8-aa33-41e0-9cb2-d7f51f51d305">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="capture vars" doc:id="9fc2442d-69b3-4dd2-925f-300ca9d4e7fb">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="application_version"><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+attributes.queryParams.application_version
+]]></ee:set-variable>
+				<ee:set-variable variableName="application_name"><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+attributes.queryParams.application_name]]></ee:set-variable>
+				<ee:set-variable variableName="environment_name"><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+attributes.queryParams.environment_name]]></ee:set-variable>
+				<ee:set-variable variableName="file_data"><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform> -->
+		<ee:transform doc:name="text/plain" doc:id="a7890a1e-f351-4f1e-9982-f1565b0702b9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/plain
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="application_name" ><![CDATA[attributes.queryParams.application_name]]></ee:set-variable>
+				<ee:set-variable variableName="attributes.queryParams.environment_name" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<caas:post-config doc:name="Create Configs" doc:id="bf4632cd-364f-4f80-a47a-efc9bbb86f13" config-ref="Post_CAAS_Config" appname="#[vars.application_name]" env="#[vars.environment_name]">
+			<caas:additional-datas >
+				<caas:additional-datum key="payload" value="#[payload]" />
+			</caas:additional-datas>
+		</caas:post-config>
+		<logger level="INFO" doc:name="Log payload" doc:id="4c66c540-020d-4afe-ab5d-ec19886a750a" message="#[payload]" />
+		<ee:transform doc:name="Response" doc:id="7fecf64a-a497-427b-a448-4bcc551655d2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json 
+--- 
+read(payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
